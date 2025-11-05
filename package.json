@@ -1,0 +1,10 @@
+{
+  "name": "solana-kit-poc-monorepo",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev:react": "pnpm --filter @solana/example-react-hooks dev",
+    "dev:vanilla": "pnpm --filter @solana/example-client-core-vanilla dev"
+  }
+}
