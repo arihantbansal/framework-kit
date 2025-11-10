@@ -84,6 +84,42 @@ const WalletActions = () => {
 };
 ```
 
+### Balance watcher
+
+Read lamports (cached plus live updates) for any address.
+
+```tsx
+import { useBalance } from '@solana/react-hooks';
+
+function BalanceCard({ address }) {
+    const { lamports, fetching, slot } = useBalance(address);
+    if (fetching) return <p>Loading…</p>;
+    return (
+        <div>
+            <p>Lamports: {lamports?.toString() ?? '0'}</p>
+            <small>Last slot: {slot?.toString() ?? 'unknown'}</small>
+        </div>
+    );
+}
+```
+
+### Account cache
+
+Fetch account data and optionally keep it in sync via subscriptions.
+
+```tsx
+import { useAccount } from '@solana/react-hooks';
+
+function AccountInspector({ address }) {
+    const account = useAccount(address, { watch: true });
+
+    if (!account) return <p>Loading…</p>;
+    if (account.error) return <p>Error loading account</p>;
+
+    return <pre>{JSON.stringify(account.data, null, 2)}</pre>;
+}
+```
+
 ### SOL transfers
 
 Trigger SOL transfers with built-in status tracking.
@@ -190,6 +226,28 @@ Wrap a subtree with `<SolanaQueryProvider>` and call hooks like `useLatestBlockh
 `useProgramAccounts`, or `useSimulateTransaction`. Every hook returns `{ data, status, refresh }` so
 you can read the current value and trigger a refetch:
 
+### Latest blockhash
+
+Poll or refetch the cluster's latest blockhash.
+
+```tsx
+import { useLatestBlockhash } from '@solana/react-hooks';
+
+function BlockhashTicker() {
+    const { blockhash, status, refresh } = useLatestBlockhash({ refreshInterval: 20_000 });
+
+    return (
+        <div>
+            <button onClick={() => refresh()}>Refresh</button>
+            <p>Status: {status}</p>
+            <p>Blockhash: {blockhash ?? 'loading…'}</p>
+        </div>
+    );
+}
+```
+
+### Program accounts
+
 ```tsx
 import { SolanaQueryProvider, useProgramAccounts } from '@solana/react-hooks';
 
@@ -218,6 +276,28 @@ export function QueryDemo({ programAddress }) {
                 <ProgramAccountsList programAddress={programAddress} />
             </SolanaQueryProvider>
         </SolanaClientProvider>
+    );
+}
+```
+
+### Transaction simulation
+
+Simulate any transaction payload (wire string or object) and read RPC logs.
+
+```tsx
+import { useSimulateTransaction } from '@solana/react-hooks';
+
+function SimulationLogs({ transaction }) {
+    const { logs, status, refresh } = useSimulateTransaction(transaction);
+
+    if (status === 'loading') return <p>Simulating…</p>;
+    if (status === 'error') return <p>Simulation failed.</p>;
+
+    return (
+        <div>
+            <button onClick={() => refresh()}>Re-run</button>
+            <pre>{JSON.stringify(logs ?? [], null, 2)}</pre>
+        </div>
     );
 }
 ```

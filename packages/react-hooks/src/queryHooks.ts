@@ -1,6 +1,11 @@
 import type { SolanaClient } from '@solana/client-core';
-import type { Commitment, SendableTransaction, Transaction } from '@solana/kit';
-import { getBase64EncodedWireTransaction } from '@solana/kit';
+import {
+	type Base64EncodedWireTransaction,
+	type Commitment,
+	getBase64EncodedWireTransaction,
+	type SendableTransaction,
+	type Transaction,
+} from '@solana/kit';
 import { useCallback, useMemo } from 'react';
 
 import type { SolanaQueryResult, UseSolanaRpcQueryOptions } from './query';
@@ -53,17 +58,26 @@ export type LatestBlockhashQueryResult = SolanaQueryResult<LatestBlockhashRespon
 
 export function useLatestBlockhash(options: UseLatestBlockhashOptions = {}): LatestBlockhashQueryResult {
 	const { commitment, minContextSlot, refreshInterval = DEFAULT_BLOCKHASH_REFRESH_INTERVAL, ...rest } = options;
-	const keyArgs = useMemo(() => [commitment ?? null, minContextSlot ?? null], [commitment, minContextSlot]);
+	const normalizedMinContextSlot = useMemo<bigint | undefined>(() => {
+		if (minContextSlot === undefined) {
+			return undefined;
+		}
+		return typeof minContextSlot === 'bigint' ? minContextSlot : BigInt(Math.floor(minContextSlot));
+	}, [minContextSlot]);
+	const keyArgs = useMemo(
+		() => [commitment ?? null, normalizedMinContextSlot ?? null],
+		[commitment, normalizedMinContextSlot],
+	);
 	const fetcher = useCallback(
 		async (client: SolanaClient) => {
 			const fallbackCommitment = commitment ?? client.store.getState().cluster.commitment;
 			const plan = client.runtime.rpc.getLatestBlockhash({
 				commitment: fallbackCommitment,
-				minContextSlot,
+				minContextSlot: normalizedMinContextSlot,
 			});
 			return plan.send({ abortSignal: AbortSignal.timeout(15_000) });
 		},
-		[commitment, minContextSlot],
+		[commitment, normalizedMinContextSlot],
 	);
 	const query = useSolanaRpcQuery<LatestBlockhashResponse>('latestBlockhash', keyArgs, fetcher, {
 		refreshInterval,
@@ -135,18 +149,21 @@ export type SimulateTransactionQueryResult = SolanaQueryResult<SimulateTransacti
 		logs: readonly string[] | null | undefined;
 	}>;
 
-type SimulationInput = (SendableTransaction & Transaction) | string;
+type SimulationInput = (SendableTransaction & Transaction) | Base64EncodedWireTransaction | string;
 
 export function useSimulateTransaction(
 	transaction?: SimulationInput | null,
 	options: UseSimulateTransactionOptions = {},
 ): SimulateTransactionQueryResult {
 	const { commitment, config, refreshInterval, ...rest } = options;
-	const wire = useMemo(() => {
+	const wire = useMemo<Base64EncodedWireTransaction | null>(() => {
 		if (!transaction) {
 			return null;
 		}
-		return typeof transaction === 'string' ? transaction : getBase64EncodedWireTransaction(transaction);
+		if (typeof transaction === 'string') {
+			return transaction as Base64EncodedWireTransaction;
+		}
+		return getBase64EncodedWireTransaction(transaction);
 	}, [transaction]);
 	const configKey = useMemo(() => stableStringify(config ?? null), [config]);
 	const fetcher = useCallback(
