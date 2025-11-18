@@ -51,7 +51,11 @@
 		"test": "vitest run --config ./vitest.config.ts",
 		"typecheck": "pnpm test:typecheck"
 	},
-	"author": "Solana Labs Maintainers <maintainers@solanalabs.com>",
+	"author": "Solana Maintainers <maintainers@solana.foundation>",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/solana-foundation/framework-kit"
+	},
 	"license": "MIT",
 	"dependencies": {
 		"@solana/codecs-strings": "^5.0.0",
