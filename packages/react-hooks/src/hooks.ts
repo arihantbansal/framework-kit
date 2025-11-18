@@ -53,7 +53,7 @@ import { useClientStore } from './useClientStore';
 
 type ClusterState = ClientState['cluster'];
 type ClusterStatus = ClientState['cluster']['status'];
-type WalletStandardDiscoveryOptions = Parameters<typeof watchWalletStandardConnectors>[1];
+export type WalletStandardDiscoveryOptions = Parameters<typeof watchWalletStandardConnectors>[1];
 
 type UnwrapPromise<T> = T extends Promise<infer U> ? U : T;
 

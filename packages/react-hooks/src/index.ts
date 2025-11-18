@@ -19,6 +19,8 @@ export {
 } from './hooks';
 export { SolanaQueryProvider } from './QueryProvider';
 export { useLatestBlockhash, useProgramAccounts, useSimulateTransaction } from './queryHooks';
+export { SolanaProvider } from './SolanaProvider';
+export { useWalletConnection, useWalletModalState, WalletConnectionManager } from './ui';
 export { useClientStore } from './useClientStore';
 export type { OnlySolanaChains } from './walletStandardHooks';
 export {
