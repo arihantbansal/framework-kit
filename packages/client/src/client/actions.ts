@@ -127,11 +127,6 @@ export function createActions({ connectors, logger: inputLogger, runtime, store 
 				},
 				lastUpdatedAt: now(),
 			}));
-			logger({
-				data: { endpoint, latencyMs, websocketEndpoint },
-				level: 'info',
-				message: 'cluster ready',
-			});
 		} catch (error) {
 			store.setState((state) => ({
 				...state,
