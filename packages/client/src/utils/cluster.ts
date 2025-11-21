@@ -45,11 +45,15 @@ function inferWebsocketEndpoint(endpoint: ClusterUrl): ClusterUrl {
 	return endpoint;
 }
 
-export function resolveCluster(config: Readonly<{ endpoint?: ClusterUrl; moniker?: ClusterMoniker; websocketEndpoint?: ClusterUrl }>): ResolvedCluster {
+export function resolveCluster(
+	config: Readonly<{ endpoint?: ClusterUrl; moniker?: ClusterMoniker; websocketEndpoint?: ClusterUrl }>,
+): ResolvedCluster {
 	const moniker = config.moniker ?? (config.endpoint ? 'custom' : 'devnet');
 	const mapped = moniker === 'custom' ? undefined : MONIKER_ENDPOINTS[moniker];
 	const endpoint = (config.endpoint ?? mapped?.endpoint) as ClusterUrl;
-	const websocketEndpoint = (config.websocketEndpoint ?? mapped?.websocketEndpoint ?? inferWebsocketEndpoint(endpoint)) as ClusterUrl;
+	const websocketEndpoint = (config.websocketEndpoint ??
+		mapped?.websocketEndpoint ??
+		inferWebsocketEndpoint(endpoint)) as ClusterUrl;
 	return {
 		endpoint,
 		moniker,

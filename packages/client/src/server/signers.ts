@@ -1,7 +1,7 @@
-import { createKeyPairSignerFromBytes, createKeyPairSignerFromPrivateKeyBytes, type KeyPairSigner } from '@solana/kit';
-import bs58 from 'bs58';
 import { promises as fs } from 'node:fs';
 import { dirname } from 'node:path';
+import { createKeyPairSignerFromBytes, createKeyPairSignerFromPrivateKeyBytes, type KeyPairSigner } from '@solana/kit';
+import bs58 from 'bs58';
 
 type PersistableKeypair = Readonly<{
 	base58SecretKey: string;
@@ -73,15 +73,24 @@ export async function generateKeypair(options: KeypairLoadOptions = {}): Promise
 	return loadSignerFromBytes(seed, options.extractable ?? true);
 }
 
-export async function loadKeypairFromBytes(bytes: Uint8Array, options: KeypairLoadOptions = {}): Promise<PersistableKeypair> {
+export async function loadKeypairFromBytes(
+	bytes: Uint8Array,
+	options: KeypairLoadOptions = {},
+): Promise<PersistableKeypair> {
 	return loadSignerFromBytes(bytes, options.extractable ?? true);
 }
 
-export async function loadKeypairFromBase58(secret: string, options: KeypairLoadOptions = {}): Promise<PersistableKeypair> {
+export async function loadKeypairFromBase58(
+	secret: string,
+	options: KeypairLoadOptions = {},
+): Promise<PersistableKeypair> {
 	return loadSignerFromBytes(bs58.decode(secret), options.extractable ?? true);
 }
 
-export async function loadKeypairFromEnv(variableName: string, options: KeypairLoadOptions = {}): Promise<PersistableKeypair> {
+export async function loadKeypairFromEnv(
+	variableName: string,
+	options: KeypairLoadOptions = {},
+): Promise<PersistableKeypair> {
 	const value = process.env[variableName];
 	if (!value) {
 		throw new Error(`Environment variable ${variableName} is not set.`);
@@ -89,7 +98,10 @@ export async function loadKeypairFromEnv(variableName: string, options: KeypairL
 	return loadSignerFromBytes(parseKeyMaterial(value), options.extractable ?? true);
 }
 
-export async function loadKeypairFromFile(filePath: string, options: KeypairLoadOptions = {}): Promise<PersistableKeypair> {
+export async function loadKeypairFromFile(
+	filePath: string,
+	options: KeypairLoadOptions = {},
+): Promise<PersistableKeypair> {
 	const contents = await fs.readFile(filePath, 'utf8');
 	return loadSignerFromBytes(parseKeyMaterial(contents), options.extractable ?? true);
 }

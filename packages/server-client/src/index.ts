@@ -1,5 +1,6 @@
-import { createClient, resolveCluster, type ClusterMoniker } from '@solana/client';
 import type { SolanaClient, SolanaClientConfig } from '@solana/client';
+import { type ClusterMoniker, createClient, resolveCluster } from '@solana/client';
+
 export * from '@solana/client/server';
 export type { ClusterMoniker };
 

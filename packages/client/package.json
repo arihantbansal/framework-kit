@@ -37,7 +37,9 @@
 	"types": "./dist/types/index.d.ts",
 	"typesVersions": {
 		"*": {
-			"server": ["./dist/types/server/index.d.ts"]
+			"server": [
+				"./dist/types/server/index.d.ts"
+			]
 		}
 	},
 	"type": "commonjs",
