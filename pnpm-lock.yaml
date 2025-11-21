@@ -153,6 +153,9 @@ importers:
       '@wallet-standard/features':
         specifier: ^1.0.3
         version: 1.1.0
+      bs58:
+        specifier: ^6.0.0
+        version: 6.0.0
       typescript:
         specifier: '>=5.3.3'
         version: 5.9.3
@@ -224,6 +227,19 @@ importers:
       react:
         specifier: ^19.0.0
         version: 19.2.0
+
+  packages/server-client:
+    dependencies:
+      '@solana/client':
+        specifier: workspace:*
+        version: link:../client
+      typescript:
+        specifier: '>=5.3.3'
+        version: 5.9.3
+    devDependencies:
+      '@types/node':
+        specifier: ^24
+        version: 24.10.0
 
   packages/web3-compat:
     dependencies:
