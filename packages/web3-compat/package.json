@@ -41,6 +41,10 @@
 		"kit",
 		"compatibility"
 	],
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/solana-foundation/framework-kit"
+	},
 	"scripts": {
 		"build": "pnpm compile:js && pnpm compile:typedefs",
 		"compile:js": "tsup --config ../build-scripts/tsup.config.package.ts",
