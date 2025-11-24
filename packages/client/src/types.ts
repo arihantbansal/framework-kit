@@ -163,6 +163,7 @@ export type SolanaClientConfig = Readonly<{
 	commitment?: Commitment;
 	createStore?: CreateStoreFn;
 	endpoint: ClusterUrl;
+	initialState?: SerializableSolanaState;
 	logger?: ClientLogger;
 	rpcClient?: SolanaRpcClient;
 	walletConnectors?: readonly WalletConnector[];

@@ -143,6 +143,33 @@ describe('createClient', () => {
 		expect(createSolanaRpcClientMock).not.toHaveBeenCalled();
 	});
 
+	it('applies initialState overrides to config', () => {
+		const state = {
+			autoconnect: false,
+			commitment: 'processed',
+			endpoint: 'https://rpc.state',
+			lastConnectorId: null,
+			lastPublicKey: null,
+			version: 1,
+			websocketEndpoint: 'wss://rpc.state',
+		};
+		createClient({
+			...config,
+			endpoint: 'https://rpc.config',
+			initialState: state,
+		});
+		expect(createSolanaRpcClientMock).toHaveBeenCalledWith({
+			commitment: 'processed',
+			endpoint: 'https://rpc.state',
+			websocketEndpoint: 'wss://rpc.state',
+		});
+		const actions = createActionsMock.mock.results[createActionsMock.mock.results.length - 1].value as ActionSet;
+		expect(actions.setCluster).toHaveBeenCalledWith('https://rpc.state', {
+			commitment: 'processed',
+			websocketEndpoint: 'wss://rpc.state',
+		});
+	});
+
 	it('logs errors when initial cluster setup fails', async () => {
 		const logger = vi.fn();
 		createLoggerMock.mockReturnValueOnce(logger as Logger);

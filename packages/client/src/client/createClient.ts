@@ -1,5 +1,6 @@
 import { createLogger, formatError } from '../logging/logger';
 import { createSolanaRpcClient } from '../rpc/createSolanaRpcClient';
+import { applySerializableState } from '../serialization/state';
 import type { ClientStore, SolanaClient, SolanaClientConfig, SolanaClientRuntime } from '../types';
 import { now } from '../utils';
 import { createWalletRegistry } from '../wallet/registry';
@@ -15,27 +16,28 @@ import { createWatchers } from './watchers';
  * @returns Fully initialized {@link SolanaClient} instance.
  */
 export function createClient(config: SolanaClientConfig): SolanaClient {
-	const commitment = config.commitment ?? 'confirmed';
-	const websocketEndpoint = config.websocketEndpoint ?? config.endpoint;
+	const hydratedConfig = config.initialState ? applySerializableState(config, config.initialState) : config;
+	const commitment = hydratedConfig.commitment ?? 'confirmed';
+	const websocketEndpoint = hydratedConfig.websocketEndpoint ?? hydratedConfig.endpoint;
 	const initialState = createInitialClientState({
 		commitment,
-		endpoint: config.endpoint,
+		endpoint: hydratedConfig.endpoint,
 		websocketEndpoint,
 	});
 	const store: ClientStore = config.createStore ? config.createStore(initialState) : createClientStore(initialState);
 	const rpcClient =
-		config.rpcClient ??
+		hydratedConfig.rpcClient ??
 		createSolanaRpcClient({
 			commitment,
-			endpoint: config.endpoint,
+			endpoint: hydratedConfig.endpoint,
 			websocketEndpoint,
 		});
 	const runtime: SolanaClientRuntime = {
 		rpc: rpcClient.rpc,
 		rpcSubscriptions: rpcClient.rpcSubscriptions,
 	};
-	const connectors = createWalletRegistry(config.walletConnectors ?? []);
-	const logger = createLogger(config.logger);
+	const connectors = createWalletRegistry(hydratedConfig.walletConnectors ?? []);
+	const logger = createLogger(hydratedConfig.logger);
 	const actions = createActions({ connectors, logger, runtime, store });
 	const watchers = createWatchers({ logger, runtime, store });
 	const helpers = createClientHelpers(runtime, store);
@@ -47,7 +49,7 @@ export function createClient(config: SolanaClientConfig): SolanaClient {
 		},
 		lastUpdatedAt: now(),
 	}));
-	actions.setCluster(config.endpoint, { commitment, websocketEndpoint }).catch((error) =>
+	actions.setCluster(hydratedConfig.endpoint, { commitment, websocketEndpoint }).catch((error) =>
 		logger({
 			data: formatError(error),
 			level: 'error',
