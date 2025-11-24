@@ -1,4 +1,4 @@
-import type { SerializableSolanaState, SolanaClientConfig } from '../types';
+import type { SerializableSolanaState, SolanaClient, SolanaClientConfig } from '../types';
 
 const SERIALIZABLE_STATE_VERSION = 1;
 
@@ -36,4 +36,77 @@ export function applySerializableState(
 		endpoint: state.endpoint ?? config.endpoint,
 		websocketEndpoint: state.websocketEndpoint ?? config.websocketEndpoint,
 	};
+}
+
+/**
+ * Serializes a {@link SerializableSolanaState} to a JSON string.
+ */
+export function serializeSolanaState(state: SerializableSolanaState): string {
+	return JSON.stringify(state);
+}
+
+/**
+ * Safely deserializes persisted state into a {@link SerializableSolanaState}.
+ */
+export function deserializeSolanaState(json: string | null | undefined): SerializableSolanaState | null {
+	if (!json) return null;
+	try {
+		const parsed = JSON.parse(json) as Partial<SerializableSolanaState> | unknown;
+		if (typeof parsed !== 'object' || parsed === null) return null;
+		const state = parsed as Partial<SerializableSolanaState>;
+		return {
+			autoconnect: state.autoconnect ?? false,
+			commitment: state.commitment,
+			endpoint: state.endpoint as SerializableSolanaState['endpoint'],
+			lastConnectorId: state.lastConnectorId ?? null,
+			lastPublicKey: state.lastPublicKey ?? null,
+			version: state.version ?? SERIALIZABLE_STATE_VERSION,
+			websocketEndpoint: state.websocketEndpoint,
+		};
+	} catch {
+		return null;
+	}
+}
+
+function getSerializableStateSnapshot(client: SolanaClient): SerializableSolanaState {
+	const state = client.store.getState();
+	const wallet = state.wallet;
+	let lastConnectorId: string | null = null;
+	let lastPublicKey: string | null = null;
+	if ('connectorId' in wallet) {
+		lastConnectorId = wallet.connectorId ?? null;
+		if (wallet.status === 'connected') {
+			lastPublicKey = wallet.session.account.address.toString();
+		}
+	}
+	return {
+		autoconnect: false,
+		commitment: state.cluster.commitment,
+		endpoint: state.cluster.endpoint,
+		lastConnectorId,
+		lastPublicKey,
+		version: SERIALIZABLE_STATE_VERSION,
+		websocketEndpoint: state.cluster.websocketEndpoint,
+	};
+}
+
+/**
+ * Subscribes to client state changes and emits a serializable snapshot when relevant fields change.
+ */
+export function subscribeSolanaState(
+	client: SolanaClient,
+	listener: (state: SerializableSolanaState) => void,
+): () => void {
+	let previous = serializeSolanaState(getSerializableStateSnapshot(client));
+	listener(JSON.parse(previous) as SerializableSolanaState);
+	const unsubscribe = client.store.subscribe(() => {
+		const snapshot = getSerializableStateSnapshot(client);
+		const serialized = serializeSolanaState(snapshot);
+		if (serialized === previous) {
+			return;
+		}
+		previous = serialized;
+		listener(snapshot);
+	});
+	return unsubscribe;
 }

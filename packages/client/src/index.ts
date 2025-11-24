@@ -65,7 +65,13 @@ export {
 	type SolanaRpcClient,
 } from './rpc/createSolanaRpcClient';
 export { bigintFromJson, bigintToJson, lamportsFromJson, lamportsToJson } from './serialization/json';
-export { applySerializableState, getInitialSerializableState } from './serialization/state';
+export {
+	applySerializableState,
+	deserializeSolanaState,
+	getInitialSerializableState,
+	serializeSolanaState,
+	subscribeSolanaState,
+} from './serialization/state';
 export {
 	type ConfirmationCommitment,
 	confirmationMeetsCommitment,
