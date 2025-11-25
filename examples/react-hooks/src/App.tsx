@@ -2,7 +2,6 @@ import {
 	autoDiscover,
 	backpack,
 	createSolanaRpcClient,
-	injected,
 	phantom,
 	type SolanaClientConfig,
 	solflare,
@@ -37,7 +36,7 @@ const DEFAULT_CLIENT_CONFIG: SolanaClientConfig = {
 
 export default function App() {
 	const walletConnectors = useMemo(
-		() => dedupeConnectors([injected(), ...phantom(), ...solflare(), ...backpack(), ...autoDiscover()]),
+		() => dedupeConnectors([...phantom(), ...solflare(), ...backpack(), ...autoDiscover()]),
 		[],
 	);
 	const rpcClient = useMemo(
