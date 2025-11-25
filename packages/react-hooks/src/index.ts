@@ -24,13 +24,3 @@ export { useLatestBlockhash, useProgramAccounts, useSimulateTransaction } from '
 export { SolanaProvider } from './SolanaProvider';
 export { useWalletConnection, useWalletModalState, WalletConnectionManager } from './ui';
 export { useClientStore } from './useClientStore';
-export type { OnlySolanaChains } from './walletStandardHooks';
-export {
-	useSignAndSendTransaction,
-	useSignIn,
-	useSignMessage,
-	useSignTransaction,
-	useWalletAccountMessageSigner,
-	useWalletAccountTransactionSendingSigner,
-	useWalletAccountTransactionSigner,
-} from './walletStandardHooks';

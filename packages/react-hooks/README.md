@@ -393,8 +393,13 @@ function SimulationLogs({ transaction }) {
 
 ## Going further
 
-- Need Wallet Standard buttons or sign/send helpers? Use `useSignIn`, `useSignMessage`,
-  `useSignTransaction`, and friends from `walletStandardHooks.ts`.
+- Wallet connection UI: `useWalletConnection` gives you the current wallet, connect/disconnect
+  helpers, and the connector list (from `client.connectors` when provided, with optional Wallet
+  Standard discovery fallback). Pair it with your preferred UI, or `WalletConnectionManager` for a
+  simple modal state helper.
+- Signing helpers: the wallet session returned by `useWallet` exposes `signMessage`,
+  `signTransaction`, and `sendTransaction` when supported by the connector. These connector methods
+  replace the deprecated Wallet Standard shims.
 - Looking for examples? See `examples/react-hooks` for a ready-to-run, tabbed playground that wires
   the provider, hooks, and mock UIs together across wallet/state, transaction, and query demos.
 

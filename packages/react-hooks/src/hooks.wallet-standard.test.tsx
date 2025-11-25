@@ -72,4 +72,13 @@ describe('useWalletStandardConnectors', () => {
 		expect(mockedGet).toHaveBeenCalledWith({ overrides });
 		expect(mockedWatch).toHaveBeenCalledWith(expect.any(Function), { overrides });
 	});
+
+	it('can be disabled to skip discovery and watching', () => {
+		const { result } = renderHookWithClient(() => useWalletStandardConnectors({ disabled: true }));
+
+		expect(result.current).toEqual([]);
+		expect(mockedGet).not.toHaveBeenCalled();
+		expect(mockedWatch).not.toHaveBeenCalled();
+		expect(unsubscribe).not.toHaveBeenCalled();
+	});
 });

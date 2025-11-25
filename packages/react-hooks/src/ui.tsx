@@ -2,6 +2,7 @@ import type { WalletConnector, WalletSession, WalletStatus } from '@solana/clien
 import type { ReactNode } from 'react';
 import { useCallback, useMemo, useState } from 'react';
 
+import { useSolanaClient } from './context';
 import {
 	useConnectWallet,
 	useDisconnectWallet,
@@ -22,9 +23,14 @@ type WalletConnectionState = Readonly<{
 	wallet: WalletSession | undefined;
 }>;
 
+type WalletDiscoveryOptions = WalletStandardDiscoveryOptions &
+	Readonly<{
+		disabled?: boolean;
+	}>;
+
 type UseWalletConnectionOptions = Readonly<{
 	connectors?: readonly WalletConnector[];
-	discoveryOptions?: WalletStandardDiscoveryOptions;
+	discoveryOptions?: WalletDiscoveryOptions;
 }>;
 
 /**
@@ -34,9 +40,14 @@ export function useWalletConnection(options: UseWalletConnectionOptions = {}): W
 	const wallet = useWallet();
 	const connectWallet = useConnectWallet();
 	const disconnectWallet = useDisconnectWallet();
-	const discovered = useWalletStandardConnectors(options.discoveryOptions);
+	const client = useSolanaClient();
+	const shouldDiscover = !options.connectors && client.connectors.all.length === 0;
+	const discovered = useWalletStandardConnectors({
+		...options.discoveryOptions,
+		disabled: !shouldDiscover,
+	});
 
-	const connectors = options.connectors ?? discovered;
+	const connectors = options.connectors ?? (client.connectors.all.length > 0 ? client.connectors.all : discovered);
 	const connect = useCallback(
 		(connectorId: string, connectOptions?: Readonly<{ autoConnect?: boolean }>) =>
 			connectWallet(connectorId, connectOptions),

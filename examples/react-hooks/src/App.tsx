@@ -1,6 +1,6 @@
-import { createSolanaRpcClient, type SolanaClientConfig } from '@solana/client';
-import { SolanaProvider, useWalletStandardConnectors } from '@solana/react-hooks';
-import { Suspense, useMemo } from 'react';
+import { autoDiscover, backpack, phantom, type SolanaClientConfig, solflare } from '@solana/client';
+import { SolanaProvider } from '@solana/react-hooks';
+import { Suspense } from 'react';
 
 import { AccountInspectorCard } from './components/AccountInspectorCard.tsx';
 import { AirdropCard } from './components/AirdropCard.tsx';
@@ -20,32 +20,12 @@ import { WalletControls } from './components/WalletControls.tsx';
 
 const LAST_CONNECTOR_STORAGE_KEY = 'solana:last-connector';
 
-const DEFAULT_CLIENT_CONFIG: SolanaClientConfig = {
-	commitment: 'confirmed',
-	endpoint: 'https://api.devnet.solana.com',
-	websocketEndpoint: 'wss://api.devnet.solana.com',
-};
-
 export default function App() {
-	const walletConnectors = useWalletStandardConnectors();
-	const rpcClient = useMemo(
-		() =>
-			createSolanaRpcClient({
-				commitment: DEFAULT_CLIENT_CONFIG.commitment,
-				endpoint: DEFAULT_CLIENT_CONFIG.endpoint,
-				websocketEndpoint: DEFAULT_CLIENT_CONFIG.websocketEndpoint,
-			}),
-		[],
-	);
-
-	const clientConfig = useMemo<SolanaClientConfig>(
-		() => ({
-			...DEFAULT_CLIENT_CONFIG,
-			rpcClient,
-			walletConnectors,
-		}),
-		[rpcClient, walletConnectors],
-	);
+	const clientConfig: SolanaClientConfig = {
+		commitment: 'confirmed',
+		endpoint: 'https://api.devnet.solana.com',
+		walletConnectors: [...phantom(), ...solflare(), ...backpack(), ...autoDiscover()],
+	};
 
 	return (
 		<SolanaProvider

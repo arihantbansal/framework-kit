@@ -80,7 +80,7 @@ function getSerializableStateSnapshot(client: SolanaClient): SerializableSolanaS
 		}
 	}
 	return {
-		autoconnect: false,
+		autoconnect: Boolean(lastConnectorId),
 		commitment: state.cluster.commitment,
 		endpoint: state.cluster.endpoint,
 		lastConnectorId,

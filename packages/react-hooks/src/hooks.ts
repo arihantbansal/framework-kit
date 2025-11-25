@@ -56,6 +56,11 @@ type ClusterState = ClientState['cluster'];
 type ClusterStatus = ClientState['cluster']['status'];
 export type WalletStandardDiscoveryOptions = Parameters<typeof watchWalletStandardConnectors>[1];
 
+type WalletStandardDiscoveryConfig = WalletStandardDiscoveryOptions &
+	Readonly<{
+		disabled?: boolean;
+	}>;
+
 type UnwrapPromise<T> = T extends Promise<infer U> ? U : T;
 
 type RpcInstance = SolanaClient['runtime']['rpc'];
@@ -528,20 +533,22 @@ export function useBalance(
 /**
  * Collect Wallet Standard connectors and keep the list in sync with registration changes.
  */
-export function useWalletStandardConnectors(options?: WalletStandardDiscoveryOptions): readonly WalletConnector[] {
+export function useWalletStandardConnectors(options?: WalletStandardDiscoveryConfig): readonly WalletConnector[] {
 	const overrides = options?.overrides;
+	const disabled = options?.disabled ?? false;
 	const memoisedOptions = useMemo(() => (overrides ? { overrides } : undefined), [overrides]);
 	const [connectors, setConnectors] = useState<readonly WalletConnector[]>(() =>
-		getWalletStandardConnectors(memoisedOptions ?? {}),
+		disabled ? [] : getWalletStandardConnectors(memoisedOptions ?? {}),
 	);
 
 	useEffect(() => {
+		if (disabled) return;
 		setConnectors(getWalletStandardConnectors(memoisedOptions ?? {}));
 		const unwatch = watchWalletStandardConnectors(setConnectors, memoisedOptions ?? {});
 		return () => {
 			unwatch();
 		};
-	}, [memoisedOptions]);
+	}, [disabled, memoisedOptions]);
 
 	return connectors;
 }
