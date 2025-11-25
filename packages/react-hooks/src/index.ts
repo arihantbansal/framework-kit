@@ -20,6 +20,12 @@ export {
 } from './hooks';
 export { SolanaQueryProvider } from './QueryProvider';
 export { useLatestBlockhash, useProgramAccounts, useSimulateTransaction } from './queryHooks';
+export {
+	getLatestBlockhashKey,
+	getProgramAccountsKey,
+	getSignatureStatusKey,
+	getSimulateTransactionKey,
+} from './queryKeys';
 export { SolanaProvider } from './SolanaProvider';
 export { useWalletConnection, useWalletModalState, WalletConnectionManager } from './ui';
 export { useClientStore } from './useClientStore';

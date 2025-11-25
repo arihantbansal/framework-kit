@@ -41,11 +41,16 @@ import {
 } from '@solana/client';
 import type { Commitment, Lamports, Signature } from '@solana/kit';
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
-import useSWR from 'swr';
+import useSWR, { type BareFetcher, type SWRConfiguration } from 'swr';
 
 import { useSolanaClient } from './context';
 import { type SolanaQueryResult, type UseSolanaRpcQueryOptions, useSolanaRpcQuery } from './query';
-import { type LatestBlockhashQueryResult, type UseLatestBlockhashOptions, useLatestBlockhash } from './queryHooks';
+import { getSignatureStatusKey } from './queryKeys';
+import {
+	type LatestBlockhashQueryResult,
+	type UseLatestBlockhashParameters,
+	useLatestBlockhash,
+} from './queryHooks';
 import { useQuerySuspensePreference } from './querySuspenseContext';
 import { useClientStore } from './useClientStore';
 
@@ -265,6 +270,7 @@ type UseSplTokenOptions = Readonly<{
 	config?: Omit<SplTokenHelperConfig, 'commitment' | 'mint'>;
 	owner?: AddressLike;
 	revalidateOnFocus?: boolean;
+	swr?: Omit<SWRConfiguration<SplTokenBalanceResult, unknown, BareFetcher<SplTokenBalanceResult>>, 'fallback' | 'suspense'>;
 }>;
 
 /**
@@ -318,10 +324,20 @@ export function useSplToken(
 		return helper.fetchBalance(owner, options.commitment);
 	}, [helper, owner, options.commitment]);
 
-	const { data, error, isLoading, isValidating, mutate } = useSWR<SplTokenBalanceResult>(balanceKey, fetchBalance, {
-		revalidateOnFocus: options.revalidateOnFocus ?? false,
-		suspense,
-	});
+	const swrOptions = useMemo(
+		() => ({
+			revalidateOnFocus: options.revalidateOnFocus ?? false,
+			suspense,
+			...(options.swr ?? {}),
+		}),
+		[options.revalidateOnFocus, options.swr, suspense],
+	);
+
+	const { data, error, isLoading, isValidating, mutate } = useSWR<SplTokenBalanceResult>(
+		balanceKey,
+		fetchBalance,
+		swrOptions,
+	);
 
 	const sessionRef = useRef(session);
 	useEffect(() => {
@@ -522,7 +538,7 @@ export function useBalance(
 
 type UseTransactionPoolConfig = Readonly<{
 	instructions?: TransactionInstructionList;
-	latestBlockhash?: UseLatestBlockhashOptions;
+	latestBlockhash?: UseLatestBlockhashParameters;
 }>;
 
 type UseTransactionPoolPrepareOptions = TransactionPoolPrepareOptions;
@@ -724,9 +740,15 @@ export function useSendTransaction(): UseSendTransactionResult {
 	};
 }
 
-export type UseSignatureStatusOptions = UseSolanaRpcQueryOptions<SignatureStatusValue | null> &
+export type UseSignatureStatusOptions = Readonly<{
+	config?: SignatureStatusConfig;
+	disabled?: boolean;
+	swr?: UseSolanaRpcQueryOptions<SignatureStatusValue | null>['swr'];
+}>;
+
+export type UseSignatureStatusParameters = UseSignatureStatusOptions &
 	Readonly<{
-		config?: SignatureStatusConfig;
+		signature?: SignatureLike;
 	}>;
 
 export type SignatureStatusResult = SolanaQueryResult<SignatureStatusValue | null> &
@@ -742,10 +764,9 @@ export function useSignatureStatus(
 	signatureInput?: SignatureLike,
 	options: UseSignatureStatusOptions = {},
 ): SignatureStatusResult {
-	const { config, ...queryOptions } = options;
+	const { config, disabled: disabledOption, swr } = options;
 	const signature = useMemo(() => normalizeSignature(signatureInput), [signatureInput]);
 	const signatureKey = signature?.toString() ?? null;
-	const configKey = useMemo(() => JSON.stringify(config ?? null), [config]);
 	const fetcher = useCallback(
 		async (client: SolanaClient) => {
 			if (!signatureKey) {
@@ -760,14 +781,14 @@ export function useSignatureStatus(
 		},
 		[config, signature, signatureKey],
 	);
-	const disabled = queryOptions.disabled ?? !signatureKey;
+	const disabled = disabledOption ?? !signatureKey;
 	const query = useSolanaRpcQuery<SignatureStatusValue | null>(
 		'signatureStatus',
-		[signatureKey, configKey],
+		getSignatureStatusKey({ signature: signatureInput, config }),
 		fetcher,
 		{
-			...queryOptions,
 			disabled,
+			swr,
 		},
 	);
 	const confirmationStatus = deriveConfirmationStatus(query.data ?? null);
@@ -811,14 +832,17 @@ export function useWaitForSignature(
 		watchCommitment,
 		...signatureStatusOptions
 	} = options;
-	const { refreshInterval, ...restStatusOptions } = signatureStatusOptions;
+	const { swr, ...restStatusOptions } = signatureStatusOptions;
 	const subscribeCommitment = watchCommitment ?? commitment;
 	const client = useSolanaClient();
 	const normalizedSignature = useMemo(() => normalizeSignature(signatureInput), [signatureInput]);
 	const disabled = disabledOption ?? !normalizedSignature;
 	const statusQuery = useSignatureStatus(signatureInput, {
 		...restStatusOptions,
-		refreshInterval: refreshInterval ?? 2_000,
+		swr: {
+			refreshInterval: 2_000,
+			...swr,
+		},
 		disabled,
 	});
 	const [subscriptionSettled, setSubscriptionSettled] = useState(false);
@@ -876,3 +900,31 @@ export function useWaitForSignature(
 		waitStatus,
 	};
 }
+
+// Public hook type aliases for consistency
+export type UseAccountParameters = Readonly<{ address?: AddressLike; options?: UseAccountOptions }>;
+export type UseAccountReturnType = ReturnType<typeof useAccount>;
+
+export type UseBalanceParameters = Readonly<{ address?: AddressLike; options?: UseBalanceOptions }>;
+export type UseBalanceReturnType = ReturnType<typeof useBalance>;
+
+export type UseClusterStateReturnType = ReturnType<typeof useClusterState>;
+export type UseClusterStatusReturnType = ReturnType<typeof useClusterStatus>;
+
+export type UseConnectWalletReturnType = ReturnType<typeof useConnectWallet>;
+export type UseDisconnectWalletReturnType = ReturnType<typeof useDisconnectWallet>;
+
+export type UseSendTransactionReturnType = ReturnType<typeof useSendTransaction>;
+export type UseSignatureStatusReturnType = ReturnType<typeof useSignatureStatus>;
+export type UseWaitForSignatureReturnType = ReturnType<typeof useWaitForSignature>;
+
+export type UseSolTransferReturnType = ReturnType<typeof useSolTransfer>;
+export type UseSplTokenParameters = Readonly<{ mint: AddressLike; options?: UseSplTokenOptions }>;
+export type UseSplTokenReturnType = ReturnType<typeof useSplToken>;
+
+export type UseTransactionPoolParameters = Readonly<{ config?: UseTransactionPoolConfig }>;
+export type UseTransactionPoolReturnType = ReturnType<typeof useTransactionPool>;
+
+export type UseWalletReturnType = ReturnType<typeof useWallet>;
+export type UseWalletSessionReturnType = ReturnType<typeof useWalletSession>;
+export type UseWalletActionsReturnType = ReturnType<typeof useWalletActions>;

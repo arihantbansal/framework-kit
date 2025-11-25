@@ -399,6 +399,9 @@ function SimulationLogs({ transaction }) {
 - Signing helpers: the wallet session returned by `useWallet` exposes `signMessage`,
   `signTransaction`, and `sendTransaction` when supported by the connector. These connector methods
   replace the deprecated Wallet Standard shims.
+- Query hooks keep SWR options under `swr` for consistency (for example,
+  `useProgramAccounts(address, { swr: { revalidateOnFocus: false } })`) and expose typed parameter
+  and return aliases across all hooks.
 - Looking for examples? See `examples/react-hooks` for a ready-to-run, tabbed playground that wires
   the provider, hooks, and mock UIs together across wallet/state, transaction, and query demos.
 

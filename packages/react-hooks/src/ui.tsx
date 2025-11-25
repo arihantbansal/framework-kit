@@ -18,9 +18,12 @@ type WalletConnectionState = Readonly<{
 	wallet: WalletSession | undefined;
 }>;
 
-type UseWalletConnectionOptions = Readonly<{
+export type UseWalletConnectionOptions = Readonly<{
 	connectors?: readonly WalletConnector[];
 }>;
+
+export type UseWalletConnectionParameters = UseWalletConnectionOptions;
+export type UseWalletConnectionReturnType = WalletConnectionState;
 
 /**
  * Collects everything needed to build wallet connection UIs into a single hook.
@@ -89,6 +92,9 @@ export type WalletModalState = WalletConnectionState &
 		select(connectorId: string | null): void;
 		toggle(): void;
 	}>;
+
+export type UseWalletModalStateParameters = UseWalletModalStateOptions;
+export type UseWalletModalStateReturnType = WalletModalState;
 
 /**
  * Small state machine for wallet selection modals – keeps track of modal visibility and the currently
