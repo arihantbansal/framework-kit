@@ -1,5 +1,11 @@
 # @solana/react-hooks
 
+## 0.4.0
+
+### Minor Changes
+
+- [#48](https://github.com/solana-foundation/framework-kit/pull/48) [`1ae58f4`](https://github.com/solana-foundation/framework-kit/commit/1ae58f4fab5eff516f582efa3e66d4d075b3e94d) Thanks [@GuiBibeau](https://github.com/GuiBibeau)! - Standardize SWR hook ergonomics: namespace SWR options under `swr`, add query key helpers, export parameter/return aliases, and align read/mutation hooks to the new patterns.
+
 ## 0.3.0
 
 ### Minor Changes
