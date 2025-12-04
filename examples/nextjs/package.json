@@ -9,14 +9,14 @@
 		"start": "next start",
 		"lint": "biome check app",
 		"format": "biome check --write app",
-		"test:typecheck": "tsc --noEmit",
+		"test:typecheck": "tsc --noEmit -p tsconfig.typecheck.json",
 		"typecheck": "pnpm test:typecheck"
 	},
 	"dependencies": {
 		"@solana/client": "workspace:*",
 		"@solana/kit": "^5.0.0",
 		"@solana/react-hooks": "workspace:*",
-		"next": "^16.0.4",
+		"next": "^16.0.7",
 		"react": "^19.0.0",
 		"react-dom": "^19.0.0"
 	},
